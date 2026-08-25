@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie'
 import { randomBytes } from 'node:crypto'
-import { db, safeUser, seedUsers, type UserRole } from '../lib/mongodb.js'
+import { db, safeUser, seedUsers, type TeronUser, type UserRole } from '../lib/mongodb.js'
 import type { AppVariables } from '../middleware/session.js'
 
 const auth = new Hono<{ Variables: AppVariables }>()
@@ -16,19 +16,19 @@ auth.post('/login', async (c) => {
 
   await seedUsers()
   const database = await db()
-  const user = await database.collection('users').findOne({
+  const user = await database.collection<TeronUser>('users').findOne({
     email: email.toLowerCase().trim(),
     role,
   })
 
-  if (!user || (user as { passwordHash: string }).passwordHash !== password) {
+  if (!user || user.passwordHash !== password) {
     return c.json({ error: 'E-mail, senha ou perfil invalido.' }, 401)
   }
 
   const token = randomBytes(32).toString('hex')
   await database.collection('sessions').insertOne({
     token,
-    userId: String((user as { _id: unknown })._id),
+    userId: String(user._id),
     createdAt: new Date(),
   })
 
@@ -43,9 +43,9 @@ auth.post('/login', async (c) => {
 
   return c.json({
     user: safeUser({
-      ...(user as object),
-      _id: String((user as { _id: unknown })._id),
-    } as Parameters<typeof safeUser>[0]),
+      ...user,
+      _id: String(user._id),
+    }),
   })
 })
 

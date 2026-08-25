@@ -10,7 +10,7 @@ import { sessionMiddleware, type AppVariables } from './middleware/session.js'
 
 const app = new Hono<{ Variables: AppVariables }>()
 
-const frontendOrigin = process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+const frontendOrigin = process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'
 
 app.use('*', logger())
 app.use(

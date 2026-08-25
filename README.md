@@ -21,7 +21,7 @@ cp apps/web/.env.example apps/web/.env.local
 
 ```bash
 pnpm dev:api   # :4000
-pnpm dev:web   # :3000
+pnpm dev:web   # :3001
 ```
 
 Demo: `admin@teron.studio` / `teron-admin` | `cliente@orbita.com` / `teron-client`
@@ -34,7 +34,8 @@ docker compose up --build
 docker compose -f docker-compose.dev.yml up -d
 ```
 
-- Web http://localhost:3000
+- Web local http://localhost:3001
+- Web Docker http://localhost:3000
 - API http://localhost:4000/health
 - Mongo localhost:27017
 
