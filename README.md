@@ -10,6 +10,21 @@ packages/
   shared/  → tipos TypeScript compartilhados
 ```
 
+## Acesso demo (recrutador)
+
+Usuarios criados automaticamente no primeiro login (ou via `pnpm seed`):
+
+| Perfil  | URL              | E-mail                 | Senha         |
+|---------|------------------|------------------------|---------------|
+| **Admin**   | `/admin/login`   | `admin@teron.studio`   | `teron-admin`   |
+| **Cliente** | `/cliente/login` | `cliente@orbita.com`   | `teron-client`  |
+
+Fluxo sugerido para avaliacao:
+
+1. Entre como **cliente** → envie um diagnostico.
+2. Saia e entre como **admin** → veja o diagnostico e crie uma proposta.
+3. Volte como **cliente** → confira a proposta recebida.
+
 ## Setup
 
 ```bash
@@ -17,14 +32,14 @@ pnpm install
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env.local
 # preencha MONGODB_URI em apps/api/.env
-```
 
-```bash
-pnpm dev:api   # :4000
-pnpm dev:web   # :3001
-```
+pnpm seed          # garante usuarios demo no Mongo
+pnpm test          # testes de contrato (sem banco)
+# pnpm test:db     # testes + seed no Mongo (precisa MONGODB_URI)
 
-Demo: `admin@teron.studio` / `teron-admin` | `cliente@orbita.com` / `teron-client`
+pnpm dev:api       # :4000
+pnpm dev:web       # :3001
+```
 
 ## Docker
 
@@ -39,4 +54,4 @@ docker compose -f docker-compose.dev.yml up -d
 - API http://localhost:4000/health
 - Mongo localhost:27017
 
-Ver [MAPPING.md](./MAPPING.md) para o mapa monolitо → monorepo.
+Ver [MAPPING.md](./MAPPING.md) para o mapa monolito → monorepo.

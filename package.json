@@ -11,7 +11,10 @@
     "build:api": "pnpm --filter @teron/api build",
     "start:web": "pnpm --filter @teron/web start",
     "start:api": "pnpm --filter @teron/api start",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "seed": "pnpm --filter @teron/api seed",
+    "test": "pnpm --filter @teron/api test",
+    "test:db": "pnpm --filter @teron/api test:db"
   },
   "engines": {
     "node": ">=20"

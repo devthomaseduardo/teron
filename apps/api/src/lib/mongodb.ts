@@ -9,6 +9,24 @@ import { toSafeUser } from '@teron/shared'
 export type { Diagnosis, Proposal, Session, TeronUser, UserRole }
 export { toSafeUser as safeUser }
 
+/** Credenciais demo para recrutadores / demos publicas */
+export const DEMO_USERS = [
+  {
+    _id: 'demo-admin',
+    email: 'admin@teron.studio',
+    name: 'Marina Costa',
+    role: 'admin' as const,
+    password: 'teron-admin',
+  },
+  {
+    _id: 'demo-client',
+    email: 'cliente@orbita.com',
+    name: 'Lucas Mendes',
+    role: 'client' as const,
+    password: 'teron-client',
+  },
+] as const
+
 const globalForMongo = globalThis as unknown as { mongo?: Promise<MongoClient> }
 
 export async function mongo() {
@@ -26,31 +44,32 @@ export async function db() {
   return (await mongo()).db(process.env.MONGODB_DB || 'teron')
 }
 
-/** Seed de usuarios demo — so roda se a collection estiver vazia. */
+/**
+ * Garante usuarios demo (upsert por e-mail + role).
+ * Seguro chamar em todo login — nao apaga outros usuarios.
+ */
 export async function seedUsers() {
   const database = await db()
   const users = database.collection<TeronUser>('users')
-  const count = await users.countDocuments()
-  if (count > 0) return
 
-  await users.insertMany([
-    {
-      _id: 'demo-admin' as unknown as string,
-      email: 'admin@teron.studio',
-      name: 'Marina Costa',
-      role: 'admin',
-      passwordHash: 'teron-admin',
-      createdAt: new Date(),
-    },
-    {
-      _id: 'demo-client' as unknown as string,
-      email: 'cliente@orbita.com',
-      name: 'Lucas Mendes',
-      role: 'client',
-      passwordHash: 'teron-client',
-      createdAt: new Date(),
-    },
-  ] as TeronUser[])
+  for (const demo of DEMO_USERS) {
+    await users.updateOne(
+      { email: demo.email, role: demo.role },
+      {
+        $set: {
+          name: demo.name,
+          passwordHash: demo.password,
+        },
+        $setOnInsert: {
+          _id: demo._id as unknown as string,
+          email: demo.email,
+          role: demo.role,
+          createdAt: new Date(),
+        },
+      },
+      { upsert: true }
+    )
+  }
 }
 
 export async function getSessionUser(cookie?: string | null): Promise<TeronUser | null> {
