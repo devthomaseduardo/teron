@@ -1,0 +1,588 @@
+{
+  "info": {
+    "_postman_id": "c9a9db89-0887-4c59-a15a-64db157395bb",
+    "name": "TERON API",
+    "description": "Collection da API TERON para workspace Postman. A autenticacao usa cookie httpOnly `teron_session`; depois de fazer login com o mesmo `baseUrl`, o Postman reutiliza o cookie automaticamente nos endpoints protegidos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@teron.studio",
+      "type": "string"
+    },
+    {
+      "key": "adminPassword",
+      "value": "teron-admin",
+      "type": "string"
+    },
+    {
+      "key": "clientEmail",
+      "value": "cliente@orbita.com",
+      "type": "string"
+    },
+    {
+      "key": "clientPassword",
+      "value": "teron-client",
+      "type": "string"
+    },
+    {
+      "key": "diagnosisId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "proposalId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "mpPaymentId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "description": "Verificacao basica do servico da API.",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Retorna `{ ok: true, service: 'teron-api' }` quando a API esta online."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('API online', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const data = pm.response.json();",
+                  "  pm.expect(data).to.have.property('ok', true);",
+                  "  pm.expect(data).to.have.property('service', 'teron-api');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "description": "Fluxo de sessao. Faca login como admin ou cliente antes de chamar endpoints protegidos. O logout remove o cookie `teron_session`.",
+      "item": [
+        {
+          "name": "Login - Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\",\n  \"role\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Autentica usuario admin e grava cookie `teron_session` no cookie jar do Postman."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login admin respondeu com usuario', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const data = pm.response.json();",
+                  "  pm.expect(data.user).to.have.property('role', 'admin');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - Cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{clientEmail}}\",\n  \"password\": \"{{clientPassword}}\",\n  \"role\": \"client\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Autentica usuario cliente e grava cookie `teron_session` no cookie jar do Postman."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login cliente respondeu com usuario', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const data = pm.response.json();",
+                  "  pm.expect(data.user).to.have.property('role', 'client');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sessao atual",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Retorna o usuario autenticado pelo cookie `teron_session`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Sessao valida ou nao autenticada', function () {",
+                  "  pm.expect([200, 401]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Remove a sessao atual."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Logout ok', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Diagnosticos",
+      "description": "Endpoints de diagnostico. `POST /diagnoses` aceita envio publico ou autenticado. `GET /diagnoses` exige sessao; admin lista todos, cliente lista os proprios.",
+      "item": [
+        {
+          "name": "Criar diagnostico",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientEmail\": \"{{clientEmail}}\",\n  \"niche\": \"SaaS\",\n  \"answers\": [\n    {\n      \"question\": \"Qual processo hoje consome mais tempo da equipe?\",\n      \"answer\": \"Cadastro manual de leads e acompanhamento de propostas.\"\n    },\n    {\n      \"question\": \"Onde os dados ficam espalhados?\",\n      \"answer\": \"Planilhas, WhatsApp e e-mail.\"\n    },\n    {\n      \"question\": \"Qual resultado precisa melhorar primeiro?\",\n      \"answer\": \"Tempo de resposta comercial e controle do funil.\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/diagnoses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "diagnoses"
+              ]
+            },
+            "description": "Cria um diagnostico. Resposta esperada: `{ \"id\": \"...\" }`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Diagnostico criado', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  const data = pm.response.json();",
+                  "  pm.expect(data.id).to.be.a('string');",
+                  "  pm.collectionVariables.set('diagnosisId', data.id);",
+                  "  pm.environment.set('diagnosisId', data.id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar diagnosticos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/diagnoses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "diagnoses"
+              ]
+            },
+            "description": "Lista diagnosticos. Requer login. Admin recebe todos; cliente recebe apenas os vinculados ao seu usuario."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Diagnosticos listados', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const data = pm.response.json();",
+                  "  pm.expect(data).to.be.an('array');",
+                  "  if (data[0]?._id) {",
+                  "    pm.collectionVariables.set('diagnosisId', data[0]._id);",
+                  "    pm.environment.set('diagnosisId', data[0]._id);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Propostas",
+      "description": "Endpoints de propostas. `GET` exige sessao. `POST` exige usuario admin. Se `RESEND_API_KEY` nao estiver configurada, a proposta e salva e o endpoint responde 503 com `saved: true`.",
+      "item": [
+        {
+          "name": "Listar propostas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/proposals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "proposals"
+              ]
+            },
+            "description": "Lista propostas. Admin recebe todas; cliente recebe apenas as vinculadas ao seu e-mail."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Propostas listadas', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const data = pm.response.json();",
+                  "  pm.expect(data).to.be.an('array');",
+                  "  if (data[0]?._id) {",
+                  "    pm.collectionVariables.set('proposalId', data[0]._id);",
+                  "    pm.environment.set('proposalId', data[0]._id);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Criar proposta - Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"diagnosisId\": \"{{diagnosisId}}\",\n  \"clientEmail\": \"{{clientEmail}}\",\n  \"title\": \"Proposta personalizada - Portal TERON\",\n  \"scope\": \"Construcao de portal com diagnosticos, propostas, status e acompanhamento operacional.\",\n  \"investment\": \"R$ 48.000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/proposals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "proposals"
+              ]
+            },
+            "description": "Cria proposta. Requer login como admin. Rode `Listar propostas` depois para preencher `proposalId`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Proposta salva ou enviada', function () {",
+                  "  pm.expect([200, 503]).to.include(pm.response.code);",
+                  "  if (pm.response.code === 503) {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.have.property('saved', true);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mercado Pago",
+      "description": "Endpoints de pagamento de sinal. Requer `MERCADOPAGO_ACCESS_TOKEN` no ambiente da aplicacao para checkout e webhook real.",
+      "item": [
+        {
+          "name": "Criar checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"proposalId\": \"{{proposalId}}\",\n  \"signalRatio\": 0.3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mercadopago/checkout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mercadopago",
+                "checkout"
+              ]
+            },
+            "description": "Cria preferencia de pagamento para uma proposta. Requer login como admin ou como cliente dono da proposta."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Checkout criado ou config ausente', function () {",
+                  "  pm.expect([200, 503]).to.include(pm.response.code);",
+                  "  if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.checkoutUrl).to.be.a('string');",
+                  "    pm.collectionVariables.set('mpPreferenceId', data.preferenceId);",
+                  "    pm.collectionVariables.set('checkoutUrl', data.checkoutUrl);",
+                  "    pm.environment.set('mpPreferenceId', data.preferenceId);",
+                  "    pm.environment.set('checkoutUrl', data.checkoutUrl);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar status de pagamento",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mercadopago/status?proposalId={{proposalId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mercadopago",
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "proposalId",
+                  "value": "{{proposalId}}"
+                }
+              ]
+            },
+            "description": "Consulta status de pagamento da proposta. Requer login como admin ou como cliente dono da proposta."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status consultado', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const data = pm.response.json();",
+                  "  pm.expect(data).to.have.property('proposalId');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Webhook health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mercadopago/webhook",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mercadopago",
+                "webhook"
+              ]
+            },
+            "description": "Health check do webhook. Nao exige login."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Webhook ativo', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const data = pm.response.json();",
+                  "  pm.expect(data.service).to.eql('teron-mercadopago-webhook');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Webhook pagamento - Simulacao",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"payment\",\n  \"data\": {\n    \"id\": \"{{mpPaymentId}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mercadopago/webhook?type=payment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mercadopago",
+                "webhook"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "payment"
+                }
+              ]
+            },
+            "description": "Simula notificacao de pagamento. Para processar de verdade, `mpPaymentId` precisa ser um pagamento existente no Mercado Pago."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Webhook respondeu sem retry', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
