@@ -4,23 +4,16 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'TERON — Produtos com clareza',
-  description: 'A TERON transforma problemas complexos em produtos digitais claros, desejáveis e prontos para crescer.',
+  description:
+    'A TERON transforma problemas complexos em produtos digitais claros, desejaveis e prontos para crescer.',
   generator: 'TERON',
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
+      { url: '/logo-mark.svg', type: 'image/svg+xml' },
+      { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
+      { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
     ],
     apple: '/apple-icon.png',
   },
@@ -33,9 +26,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR" className="bg-background">
       <body className="antialiased">

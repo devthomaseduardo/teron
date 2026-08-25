@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ArrowRight, LockKeyhole } from 'lucide-react'
+import { TeronLogo } from '@/components/teron-logo'
 
 export type LoginRole = 'client' | 'admin'
 
@@ -42,9 +43,7 @@ export function TeronAuthLogin({ role }: { role: LoginRole }) {
   return (
     <main className="auth-shell">
       <header className="topbar">
-        <a href="/" className="logo">
-          <span className="logo-mark">+</span> TERON
-        </a>
+        <TeronLogo height={30} />
       </header>
       <div className="auth-card panel">
         <div className="auth-icon">
