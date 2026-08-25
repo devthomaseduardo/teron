@@ -6,10 +6,16 @@ __v0_jsx-dev-runtime.ts
 .v0-trash/
 .vercel/
 
-# Environment variables
+# Environment variables — NUNCA versionar secrets
+.env
+.env.local
 .env*.local
+.env.production
 
 # Common ignores
 node_modules
 .next/
+out/
 .DS_Store
+*.log
+.turbo
