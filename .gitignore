@@ -1,21 +1,12 @@
-# v0 sandbox internal files
-__v0_runtime_loader.js
-__v0_devtools.tsx
-__v0_jsx-dev-runtime.ts
-.snowflake/
-.v0-trash/
-.vercel/
-
-# Environment variables — NUNCA versionar secrets
+node_modules
+.dist
+dist
+.next
+.turbo
 .env
 .env.local
-.env*.local
-.env.production
-
-# Common ignores
-node_modules
-.next/
-out/
-.DS_Store
+.env.*.local
 *.log
-.turbo
+.DS_Store
+coverage
+.vercel

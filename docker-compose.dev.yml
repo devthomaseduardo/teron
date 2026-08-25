@@ -1,0 +1,28 @@
+# Apenas MongoDB para desenvolvimento local com pnpm
+#
+#   docker compose -f docker-compose.dev.yml up -d
+#   pnpm install && pnpm dev:api & pnpm dev:web
+#
+# MONGODB_URI em apps/api/.env:
+#   mongodb://127.0.0.1:27017
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: teron-mongo-dev
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: teron
+    volumes:
+      - teron_mongo_dev_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  teron_mongo_dev_data:

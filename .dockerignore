@@ -1,0 +1,16 @@
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/.git
+**/.env
+**/.env.local
+**/.env.*.local
+**/*.log
+**/coverage
+**/.vercel
+**/.DS_Store
+teron-monorepo.zip
+teron-download
+*.md
+!README.md
