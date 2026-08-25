@@ -12,6 +12,25 @@ const app = new Hono<{ Variables: AppVariables }>()
 
 const frontendOrigin = process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'
 
+app.onError((err, c) => {
+  console.error('[teron-api] unhandled error', err)
+  const message = err instanceof Error ? err.message : 'Erro interno da API.'
+  const isMissingConfig =
+    message.includes('MONGODB_URI') ||
+    message.includes('MONGODB_CONNECTION_STRING') ||
+    message.includes('MERCADOPAGO_ACCESS_TOKEN')
+
+  return c.json(
+    {
+      error:
+        process.env.NODE_ENV === 'production' && !isMissingConfig
+          ? 'Erro interno da API.'
+          : message,
+    },
+    isMissingConfig ? 503 : 500
+  )
+})
+
 app.use('*', logger())
 app.use(
   '*',
