@@ -2,7 +2,6 @@ import { MongoClient, ObjectId } from 'mongodb'
 
 const globalForMongo = globalThis as unknown as { mongo?: Promise<MongoClient> }
 
-/** Nome do DB sem espacos / caracteres invalidos. Default: teron */
 export function mongoDbName() {
   const raw = (process.env.MONGODB_DB || 'teron').trim().replace(/\s+/g, '')
   if (!raw || !/^[a-zA-Z0-9_-]+$/.test(raw)) return 'teron'
@@ -13,7 +12,7 @@ export async function mongo() {
   const uri = (process.env.MONGODB_URI || process.env.MONGODB_CONNECTION_STRING || '').trim()
   if (!uri) {
     throw new Error(
-      'MONGODB_URI (ou MONGODB_CONNECTION_STRING) nao configurada. Configure na Vercel ou em .env.local.'
+      'MONGODB_URI nao configurada. Defina na Vercel (Environment Variables).'
     )
   }
   globalForMongo.mongo ??= new MongoClient(uri).connect()
@@ -56,15 +55,6 @@ export type Proposal = {
   status: 'draft' | 'sent' | 'approved'
   createdAt: Date
   sentAt?: Date
-  paymentStatus?: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unknown'
-  mpPreferenceId?: string
-  mpPaymentId?: string
-  mpStatusDetail?: string
-  signalAmount?: number
-  paidAmount?: number
-  paidAt?: Date
-  checkoutCreatedAt?: Date
-  paymentUpdatedAt?: Date
 }
 
 export type Session = {
@@ -100,6 +90,7 @@ export function safeUser(user: TeronUser | null) {
   }
 }
 
+/** Sempre garante usuarios demo com senha conhecida (texto plano para demo). */
 export async function seedUsers() {
   const database = await db()
   const users = database.collection<TeronUser>('users')
@@ -111,11 +102,11 @@ export async function seedUsers() {
         $set: {
           name: demo.name,
           passwordHash: demo.password,
+          email: demo.email,
+          role: demo.role,
         },
         $setOnInsert: {
           _id: demo._id as unknown as ObjectId,
-          email: demo.email,
-          role: demo.role,
           createdAt: new Date(),
         },
       },
