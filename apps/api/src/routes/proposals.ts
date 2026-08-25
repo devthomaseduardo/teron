@@ -6,6 +6,7 @@ import { Resend } from 'resend'
 import { db, getSessionUser, serializeId } from '../lib/mongodb.js'
 import { logActivity } from '../lib/activity.js'
 import { ensureProjectFromProposal } from '../lib/projects-service.js'
+import { rateLimit } from '../lib/rate-limit.js'
 import type { AppVariables } from '../middleware/session.js'
 
 const proposals = new Hono<{ Variables: AppVariables }>()
@@ -50,6 +51,77 @@ proposals.get('/public/:token', async (c) => {
     clientEmail: proposal.clientEmail,
     createdAt: proposal.createdAt,
     sentAt: proposal.sentAt || null,
+    approvedAt: proposal.approvedAt || null,
+  })
+})
+
+/** POST /proposals/public/:token/respond — approve | reject sem login */
+proposals.post('/public/:token/respond', async (c) => {
+  const token = c.req.param('token')
+  if (!token || token.length < 16) return c.json({ error: 'Token invalido.' }, 400)
+
+  const limited = rateLimit(`proposal-respond:${token}`, { limit: 10, windowMs: 60_000 })
+  if (!limited.ok) {
+    c.header('Retry-After', String(limited.retryAfterSec))
+    return c.json({ error: 'Muitas tentativas. Aguarde um momento.' }, 429)
+  }
+
+  const body = await c.req.json<{ action?: 'approve' | 'reject' }>()
+  if (body.action !== 'approve' && body.action !== 'reject') {
+    return c.json({ error: 'action deve ser approve ou reject.' }, 400)
+  }
+
+  const database = await db()
+  const existing = await database.collection('proposals').findOne({ publicToken: token })
+  if (!existing) return c.json({ error: 'Proposta nao encontrada.' }, 404)
+
+  if (existing.status === 'approved' || existing.status === 'rejected') {
+    return c.json({
+      id: String(existing._id),
+      status: existing.status,
+      message: 'Esta proposta ja foi respondida.',
+    })
+  }
+
+  const status = body.action === 'approve' ? 'approved' : 'rejected'
+  const $set: Record<string, unknown> = { status }
+  if (status === 'approved') $set.approvedAt = new Date()
+
+  const result = await database.collection('proposals').findOneAndUpdate(
+    { publicToken: token },
+    { $set },
+    { returnDocument: 'after' }
+  )
+
+  let project: { projectId: string; created: boolean } | null = null
+  if (status === 'approved' && result) {
+    project = await ensureProjectFromProposal({
+      _id: result._id,
+      clientEmail: String(result.clientEmail),
+      title: String(result.title),
+      timeline: result.timeline ? String(result.timeline) : undefined,
+    })
+    await logActivity({
+      type: 'proposal_approved',
+      actorEmail: String(result.clientEmail),
+      entityType: 'proposal',
+      entityId: String(result._id),
+      meta: { via: 'public_token', projectId: project.projectId },
+    })
+  } else if (result) {
+    await logActivity({
+      type: 'proposal_rejected',
+      actorEmail: String(result.clientEmail),
+      entityType: 'proposal',
+      entityId: String(result._id),
+      meta: { via: 'public_token' },
+    })
+  }
+
+  return c.json({
+    id: String(result!._id),
+    status,
+    project,
   })
 })
 
