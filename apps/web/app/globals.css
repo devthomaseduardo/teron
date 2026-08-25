@@ -1,4 +1,43 @@
-/* Estilos TERON — espelho do monolito em app/globals.css.
- * Em migracao completa, mova o CSS para ca e remova o da raiz.
- */
-@import '../../../app/globals.css';
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-border: var(--border);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--primary-foreground);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+:root {
+  --background: #0b0d0e;
+  --foreground: #e8ebe7;
+  --card: #131718;
+  --card-foreground: #e8ebe7;
+  --muted: #8d9590;
+  --primary: #c8f169;
+  --primary-foreground: #0b0d0e;
+  --border: #29302d;
+  --secondary: #1c2321;
+  --accent: #c8f169;
+  --radius: 1rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased font-sans m-0;
+  }
+}

@@ -6,6 +6,10 @@ next-env.d.ts
 .turbo
 .env
 .env.local
+.env.development
+.env.production
+.env.preview
+.env.test
 .env.*.local
 *.log
 *.tsbuildinfo
