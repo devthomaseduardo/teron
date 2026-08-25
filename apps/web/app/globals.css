@@ -1,0 +1,4 @@
+/* Estilos TERON — espelho do monolito em app/globals.css.
+ * Em migracao completa, mova o CSS para ca e remova o da raiz.
+ */
+@import '../../../app/globals.css';
