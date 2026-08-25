@@ -1,42 +1,46 @@
 # Deploy Vercel — TERON
 
-## 1. Importar o repo
+## Configuracao obrigatoria do projeto
 
-1. [vercel.com/new](https://vercel.com/new)
-2. Import **devthomaseduardo/teron**
-3. Framework: **Next.js** (auto)
-4. Root Directory: `.` (raiz)
-5. Build: `next build` (ja no `vercel.json`)
+No painel Vercel → **Project Settings → General**:
 
-## 2. Environment Variables
+| Campo | Valor |
+|-------|--------|
+| **Framework Preset** | Next.js |
+| **Root Directory** | **`.`** (raiz do repo — **nao** `apps/api`) |
+| **Build Command** | `pnpm exec next build` |
+| **Install Command** | `pnpm install` |
+| **Output** | default Next (`.next`) |
 
-| Variavel | Obrigatorio | Exemplo |
-|----------|-------------|---------|
-| `MONGODB_URI` | sim | `mongodb+srv://...` |
-| `MONGODB_DB` | nao | `teron` |
-| `RESEND_API_KEY` | nao | `re_...` |
-| `RESEND_FROM` | nao | `TERON <onboarding@resend.dev>` |
-| `NEXT_PUBLIC_SITE_URL` | recomendado | `https://teron.vercel.app` |
-| `SITE_URL` | recomendado | mesmo valor |
+Se o Root Directory estiver em `apps/api` ou `apps/web`, voce vera so API ou build quebrado.
 
-**Mercado Pago / pagamentos:** desativados. Nao precisa configurar.
+## Environment Variables
 
-## 3. Apos o deploy
+| Variavel | Obrigatorio |
+|----------|-------------|
+| `MONGODB_URI` | sim |
+| `MONGODB_DB` | `teron` (sem espaco) |
+| `RESEND_API_KEY` | nao |
+| `NEXT_PUBLIC_SITE_URL` | URL do deploy |
+| `SITE_URL` | mesma URL |
 
-Os usuarios demo sao criados no **primeiro login** (seed automatico).
+Pagamentos desativados — nao precisa Mercado Pago.
 
-### Portal admin
-- URL: `/admin/login`
-- E-mail: `admin@teron.studio`
-- Senha: `teron-admin`
+## URLs do front (apos deploy)
 
-### Portal cliente
-- URL: `/cliente/login`
-- E-mail: `cliente@orbita.com`
-- Senha: `teron-client`
+| Pagina | Path |
+|--------|------|
+| Home | `/` |
+| Login cliente | `/cliente/login` |
+| Login admin | `/admin/login` |
+| Diagnostico | `/diagnostico` |
+| Proposal Room | `/proposta/[token]` |
 
-Login exige **e-mail + senha** (e o perfil da pagina: admin ou cliente).
+APIs ficam em `/api/...` (ex.: `/api/auth/login`). O site **nao** e so a API.
 
-## 4. Branches
+## Demo
 
-So existe **main**. Nao ha outras branches para sincronizar.
+| Portal | E-mail | Senha |
+|--------|--------|-------|
+| Cliente | `cliente@orbita.com` | `teron-client` |
+| Admin | `admin@teron.studio` | `teron-admin` |
