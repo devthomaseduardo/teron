@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://teron.thomaseduardo.com.br/sitemap.xml
