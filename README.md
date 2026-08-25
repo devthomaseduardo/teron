@@ -1,57 +1,30 @@
-# TERON — monorepo (web + api)
+# TERON
 
-Separacao do monolito Next.js full-stack em:
+Produtos digitais com clareza — diagnosticos, propostas e portal cliente/admin.
 
-```text
-apps/
-  web/     → Next.js 16 (UI only)
-  api/     → Hono + MongoDB + Resend + Mercado Pago
-packages/
-  shared/  → tipos TypeScript compartilhados
-```
+## Demo (recrutador)
 
-## Acesso demo (recrutador)
+| Portal | URL | E-mail | Senha |
+|--------|-----|--------|-------|
+| **Admin** | `/admin/login` | `admin@teron.studio` | `teron-admin` |
+| **Cliente** | `/cliente/login` | `cliente@orbita.com` | `teron-client` |
 
-Usuarios criados automaticamente no primeiro login (ou via `pnpm seed`):
+Login: **e-mail + senha** (na pagina certa: admin ou cliente).
 
-| Perfil  | URL              | E-mail                 | Senha         |
-|---------|------------------|------------------------|---------------|
-| **Admin**   | `/admin/login`   | `admin@teron.studio`   | `teron-admin`   |
-| **Cliente** | `/cliente/login` | `cliente@orbita.com`   | `teron-client`  |
+## Deploy Vercel
 
-Fluxo sugerido para avaliacao:
+Ver [docs/VERCEL.md](./docs/VERCEL.md).
 
-1. Entre como **cliente** → envie um diagnostico.
-2. Saia e entre como **admin** → veja o diagnostico e crie uma proposta.
-3. Volte como **cliente** → confira a proposta recebida.
+Variaveis minimas: `MONGODB_URI`, `MONGODB_DB=teron`.
 
-## Setup
+Pagamentos (Mercado Pago) **desativados** neste deploy.
+
+## Local
 
 ```bash
-pnpm install
-cp apps/api/.env.example apps/api/.env
-cp apps/web/.env.example apps/web/.env.local
-# preencha MONGODB_URI em apps/api/.env
-
-pnpm seed          # garante usuarios demo no Mongo
-pnpm test          # testes de contrato (sem banco)
-# pnpm test:db     # testes + seed no Mongo (precisa MONGODB_URI)
-
-pnpm dev:api       # :4000
-pnpm dev:web       # :3001
+npm install
+# .env.local com MONGODB_URI
+npm run dev
 ```
 
-## Docker
-
-```bash
-docker compose up --build
-# ou so Mongo:
-docker compose -f docker-compose.dev.yml up -d
-```
-
-- Web local http://localhost:3001
-- Web Docker http://localhost:3000
-- API http://localhost:4000/health
-- Mongo localhost:27017
-
-Ver [MAPPING.md](./MAPPING.md) para o mapa monolito → monorepo.
+Monorepo (API Hono separada): `apps/api`, `apps/web` — ver [MAPPING.md](./MAPPING.md).
