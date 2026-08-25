@@ -2,11 +2,18 @@ import { MongoClient, ObjectId } from 'mongodb'
 
 const globalForMongo = globalThis as unknown as { mongo?: Promise<MongoClient> }
 
+/** Nome do DB sem espacos / caracteres invalidos. Default: teron */
+export function mongoDbName() {
+  const raw = (process.env.MONGODB_DB || 'teron').trim().replace(/\s+/g, '')
+  if (!raw || !/^[a-zA-Z0-9_-]+$/.test(raw)) return 'teron'
+  return raw
+}
+
 export async function mongo() {
-  const uri = process.env.MONGODB_URI || process.env.MONGODB_CONNECTION_STRING
+  const uri = (process.env.MONGODB_URI || process.env.MONGODB_CONNECTION_STRING || '').trim()
   if (!uri) {
     throw new Error(
-      'MONGODB_URI (ou MONGODB_CONNECTION_STRING) nao configurada. Copie .env.example para .env.local e preencha a connection string.'
+      'MONGODB_URI (ou MONGODB_CONNECTION_STRING) nao configurada. Configure na Vercel ou em .env.local.'
     )
   }
   globalForMongo.mongo ??= new MongoClient(uri).connect()
@@ -14,7 +21,7 @@ export async function mongo() {
 }
 
 export async function db() {
-  return (await mongo()).db(process.env.MONGODB_DB || 'teron')
+  return (await mongo()).db(mongoDbName())
 }
 
 export type UserRole = 'admin' | 'client'
@@ -24,7 +31,6 @@ export type TeronUser = {
   email: string
   name: string
   role: UserRole
-  /** Demo: texto simples. Producao: trocar por hash (bcrypt/argon2). */
   passwordHash: string
   createdAt: Date
 }
@@ -67,7 +73,6 @@ export type Session = {
   createdAt: Date
 }
 
-/** Credenciais demo para recrutadores */
 export const DEMO_USERS = [
   {
     _id: 'demo-admin',
@@ -95,10 +100,6 @@ export function safeUser(user: TeronUser | null) {
   }
 }
 
-/**
- * Garante usuarios demo (upsert por e-mail + role).
- * Seguro chamar em todo login.
- */
 export async function seedUsers() {
   const database = await db()
   const users = database.collection<TeronUser>('users')

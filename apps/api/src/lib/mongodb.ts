@@ -31,8 +31,14 @@ const globalForMongo = globalThis as unknown as {
   teronIndexes?: boolean
 }
 
+export function mongoDbName() {
+  const raw = (process.env.MONGODB_DB || 'teron').trim().replace(/\s+/g, '')
+  if (!raw || !/^[a-zA-Z0-9_-]+$/.test(raw)) return 'teron'
+  return raw
+}
+
 export async function mongo() {
-  const uri = process.env.MONGODB_URI || process.env.MONGODB_CONNECTION_STRING
+  const uri = (process.env.MONGODB_URI || process.env.MONGODB_CONNECTION_STRING || '').trim()
   if (!uri) {
     throw new Error(
       'MONGODB_URI (ou MONGODB_CONNECTION_STRING) nao configurada. Copie .env.example para .env e preencha a connection string.'
@@ -43,7 +49,7 @@ export async function mongo() {
 }
 
 export async function db() {
-  const database = (await mongo()).db(process.env.MONGODB_DB || 'teron')
+  const database = (await mongo()).db(mongoDbName())
   if (!globalForMongo.teronIndexes) {
     globalForMongo.teronIndexes = true
     void ensureIndexes(database).catch((err) => console.error('[mongo] indexes', err))
@@ -65,7 +71,6 @@ async function ensureIndexes(database: Awaited<ReturnType<typeof db>>) {
   ])
 }
 
-/** Garante usuarios demo com hash (migra texto plano se existir). */
 export async function seedUsers() {
   const database = await db()
   const users = database.collection<TeronUser>('users')
