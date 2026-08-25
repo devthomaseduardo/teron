@@ -9,6 +9,7 @@
     "start": "node --env-file-if-exists=.env dist/index.js",
     "typecheck": "tsc --noEmit",
     "seed": "tsx --env-file-if-exists=.env src/scripts/seed-demo.ts",
+    "init-db": "tsx --env-file-if-exists=.env src/scripts/init-db.ts",
     "test": "tsx --test src/tests/**/*.test.ts src/lib/**/*.test.ts",
     "test:db": "tsx --env-file-if-exists=.env --test src/tests/**/*.test.ts src/lib/**/*.test.ts"
   },

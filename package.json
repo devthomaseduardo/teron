@@ -13,6 +13,7 @@
     "start:api": "pnpm --filter @teron/api start",
     "typecheck": "pnpm -r typecheck",
     "seed": "pnpm --filter @teron/api seed",
+    "init-db": "pnpm --filter @teron/api init-db",
     "test": "pnpm --filter @teron/api test",
     "test:db": "pnpm --filter @teron/api test:db"
   },
