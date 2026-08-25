@@ -50,6 +50,16 @@ export type Proposal = {
   status: 'draft' | 'sent' | 'approved'
   createdAt: Date
   sentAt?: Date
+  /** Pagamento (Mercado Pago) */
+  paymentStatus?: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unknown'
+  mpPreferenceId?: string
+  mpPaymentId?: string
+  mpStatusDetail?: string
+  signalAmount?: number
+  paidAmount?: number
+  paidAt?: Date
+  checkoutCreatedAt?: Date
+  paymentUpdatedAt?: Date
 }
 
 export type Session = {
