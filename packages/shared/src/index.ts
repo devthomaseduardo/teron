@@ -1,6 +1,5 @@
 /**
  * Tipos compartilhados entre @teron/api e @teron/web
- * Extraidos de lib/mongodb.ts do monolitо original.
  */
 
 export type UserRole = 'admin' | 'client'
@@ -10,7 +9,7 @@ export type TeronUser = {
   email: string
   name: string
   role: UserRole
-  /** Demo: texto simples. Producao: hash (bcrypt/argon2). */
+  /** Hash bcrypt (ou texto plano legado no seed demo ate migrar). */
   passwordHash: string
   createdAt: Date | string
 }
@@ -22,15 +21,21 @@ export type SafeUser = {
   role: UserRole
 }
 
+export type DiagnosisStatus = 'new' | 'reviewed' | 'proposal_sent'
+
 export type Diagnosis = {
   _id?: string
   clientId: string
   clientEmail: string
   niche: string
   answers: { question: string; answer: string }[]
-  status: 'new' | 'reviewed' | 'proposal_sent'
+  status: DiagnosisStatus
   createdAt: Date | string
+  reviewedAt?: Date | string
+  reviewedBy?: string
 }
+
+export type ProposalStatus = 'draft' | 'sent' | 'approved' | 'rejected'
 
 export type Proposal = {
   _id?: string
@@ -40,9 +45,12 @@ export type Proposal = {
   scope: string
   investment: string
   timeline?: string
-  status: 'draft' | 'sent' | 'approved'
+  status: ProposalStatus
+  /** Token publico para Proposal Room (share link). */
+  publicToken?: string
   createdAt: Date | string
   sentAt?: Date | string
+  approvedAt?: Date | string
   paymentStatus?: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'unknown'
   mpPreferenceId?: string
   mpPaymentId?: string
@@ -54,10 +62,25 @@ export type Proposal = {
   paymentUpdatedAt?: Date | string
 }
 
+export type ProjectStatus = 'briefing' | 'design' | 'build' | 'qa' | 'delivered' | 'paused'
+
+export type Project = {
+  _id?: string
+  proposalId: string
+  clientEmail: string
+  title: string
+  status: ProjectStatus
+  timeline?: string
+  notes?: string
+  createdAt: Date | string
+  updatedAt?: Date | string
+}
+
 export type Session = {
   token: string
   userId: string
   createdAt: Date | string
+  expiresAt?: Date | string
 }
 
 export function toSafeUser(user: TeronUser | null): SafeUser | null {

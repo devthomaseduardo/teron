@@ -1,15 +1,14 @@
 /**
  * MongoDB + sessao + seed
- * Portado de lib/mongodb.ts do monolito Next.js.
  */
 import { MongoClient, ObjectId } from 'mongodb'
-import type { Diagnosis, Proposal, Session, TeronUser, UserRole } from '@teron/shared'
+import type { Diagnosis, Proposal, Project, Session, TeronUser, UserRole } from '@teron/shared'
 import { toSafeUser } from '@teron/shared'
+import { hashPassword, isHashed } from './password.js'
 
-export type { Diagnosis, Proposal, Session, TeronUser, UserRole }
+export type { Diagnosis, Proposal, Project, Session, TeronUser, UserRole }
 export { toSafeUser as safeUser }
 
-/** Credenciais demo para recrutadores / demos publicas */
 export const DEMO_USERS = [
   {
     _id: 'demo-admin',
@@ -27,7 +26,10 @@ export const DEMO_USERS = [
   },
 ] as const
 
-const globalForMongo = globalThis as unknown as { mongo?: Promise<MongoClient> }
+const globalForMongo = globalThis as unknown as {
+  mongo?: Promise<MongoClient>
+  teronIndexes?: boolean
+}
 
 export async function mongo() {
   const uri = process.env.MONGODB_URI || process.env.MONGODB_CONNECTION_STRING
@@ -41,24 +43,46 @@ export async function mongo() {
 }
 
 export async function db() {
-  return (await mongo()).db(process.env.MONGODB_DB || 'teron')
+  const database = (await mongo()).db(process.env.MONGODB_DB || 'teron')
+  if (!globalForMongo.teronIndexes) {
+    globalForMongo.teronIndexes = true
+    void ensureIndexes(database).catch((err) => console.error('[mongo] indexes', err))
+  }
+  return database
 }
 
-/**
- * Garante usuarios demo (upsert por e-mail + role).
- * Seguro chamar em todo login — nao apaga outros usuarios.
- */
+async function ensureIndexes(database: Awaited<ReturnType<typeof db>>) {
+  await Promise.all([
+    database.collection('users').createIndex({ email: 1, role: 1 }, { unique: true }),
+    database.collection('sessions').createIndex({ token: 1 }, { unique: true }),
+    database.collection('sessions').createIndex({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 14 }),
+    database.collection('diagnoses').createIndex({ clientEmail: 1, createdAt: -1 }),
+    database.collection('diagnoses').createIndex({ status: 1, createdAt: -1 }),
+    database.collection('proposals').createIndex({ clientEmail: 1, createdAt: -1 }),
+    database.collection('proposals').createIndex({ publicToken: 1 }, { unique: true, sparse: true }),
+    database.collection('projects').createIndex({ clientEmail: 1, createdAt: -1 }),
+    database.collection('projects').createIndex({ proposalId: 1 }),
+  ])
+}
+
+/** Garante usuarios demo com hash (migra texto plano se existir). */
 export async function seedUsers() {
   const database = await db()
   const users = database.collection<TeronUser>('users')
 
   for (const demo of DEMO_USERS) {
+    const existing = await users.findOne({ email: demo.email, role: demo.role })
+    const passwordHash =
+      existing && isHashed(existing.passwordHash)
+        ? existing.passwordHash
+        : hashPassword(demo.password)
+
     await users.updateOne(
       { email: demo.email, role: demo.role },
       {
         $set: {
           name: demo.name,
-          passwordHash: demo.password,
+          passwordHash,
         },
         $setOnInsert: {
           _id: demo._id as unknown as string,
@@ -80,6 +104,10 @@ export async function getSessionUser(cookie?: string | null): Promise<TeronUser 
   return database
     .collection<TeronUser>('users')
     .findOne({ _id: session.userId as unknown as string })
+}
+
+export function serializeId<T extends { _id?: unknown }>(doc: T) {
+  return { ...doc, _id: String(doc._id) }
 }
 
 export { ObjectId }

@@ -2,16 +2,19 @@ import { Hono } from 'hono'
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie'
 import { randomBytes } from 'node:crypto'
 import { db, safeUser, seedUsers, type TeronUser, type UserRole } from '../lib/mongodb.js'
+import { verifyPassword, hashPassword, isHashed } from '../lib/password.js'
 import type { AppVariables } from '../middleware/session.js'
 
 const auth = new Hono<{ Variables: AppVariables }>()
 
-/** POST /auth/login */
 auth.post('/login', async (c) => {
   const body = await c.req.json<{ email?: string; password?: string; role?: UserRole }>()
   const { email, password, role } = body
   if (!email || !password || !role) {
     return c.json({ error: 'Preencha todos os campos.' }, 400)
+  }
+  if (role !== 'admin' && role !== 'client') {
+    return c.json({ error: 'Perfil invalido.' }, 400)
   }
 
   await seedUsers()
@@ -21,8 +24,16 @@ auth.post('/login', async (c) => {
     role,
   })
 
-  if (!user || user.passwordHash !== password) {
+  if (!user || !verifyPassword(password, user.passwordHash)) {
     return c.json({ error: 'E-mail, senha ou perfil invalido.' }, 401)
+  }
+
+  // Migra senha legado para hash no primeiro login bem-sucedido
+  if (!isHashed(user.passwordHash)) {
+    await database.collection('users').updateOne(
+      { _id: user._id as unknown as string },
+      { $set: { passwordHash: hashPassword(password) } }
+    )
   }
 
   const token = randomBytes(32).toString('hex')
@@ -49,13 +60,11 @@ auth.post('/login', async (c) => {
   })
 })
 
-/** DELETE /auth/login — logout */
 auth.delete('/login', (c) => {
   deleteCookie(c, 'teron_session', { path: '/' })
   return c.json({ ok: true })
 })
 
-/** GET /auth/me */
 auth.get('/me', async (c) => {
   const token = getCookie(c, 'teron_session')
   const { getSessionUser, safeUser: su } = await import('../lib/mongodb.js')
