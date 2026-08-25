@@ -3,11 +3,27 @@ import { getCookie, setCookie, deleteCookie } from 'hono/cookie'
 import { randomBytes } from 'node:crypto'
 import { db, safeUser, seedUsers, type TeronUser, type UserRole } from '../lib/mongodb.js'
 import { verifyPassword, hashPassword, isHashed } from '../lib/password.js'
+import { rateLimit } from '../lib/rate-limit.js'
+import { logActivity } from '../lib/activity.js'
 import type { AppVariables } from '../middleware/session.js'
 
 const auth = new Hono<{ Variables: AppVariables }>()
 
 auth.post('/login', async (c) => {
+  const ip =
+    c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ||
+    c.req.header('x-real-ip') ||
+    'unknown'
+
+  const limited = rateLimit(`login:${ip}`, { limit: 20, windowMs: 15 * 60_000 })
+  if (!limited.ok) {
+    c.header('Retry-After', String(limited.retryAfterSec))
+    return c.json(
+      { error: 'Muitas tentativas. Tente novamente em alguns minutos.' },
+      429
+    )
+  }
+
   const body = await c.req.json<{ email?: string; password?: string; role?: UserRole }>()
   const { email, password, role } = body
   if (!email || !password || !role) {
@@ -28,7 +44,6 @@ auth.post('/login', async (c) => {
     return c.json({ error: 'E-mail, senha ou perfil invalido.' }, 401)
   }
 
-  // Migra senha legado para hash no primeiro login bem-sucedido
   if (!isHashed(user.passwordHash)) {
     await database.collection('users').updateOne(
       { _id: user._id as unknown as string },
@@ -52,6 +67,13 @@ auth.post('/login', async (c) => {
     path: '/',
   })
 
+  await logActivity({
+    type: 'login',
+    actorId: String(user._id),
+    actorEmail: user.email,
+    meta: { role: user.role },
+  })
+
   return c.json({
     user: safeUser({
       ...user,
@@ -60,7 +82,16 @@ auth.post('/login', async (c) => {
   })
 })
 
-auth.delete('/login', (c) => {
+auth.delete('/login', async (c) => {
+  const token = getCookie(c, 'teron_session')
+  if (token) {
+    try {
+      const database = await db()
+      await database.collection('sessions').deleteOne({ token })
+    } catch {
+      /* ignore */
+    }
+  }
   deleteCookie(c, 'teron_session', { path: '/' })
   return c.json({ ok: true })
 })

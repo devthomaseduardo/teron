@@ -4,6 +4,8 @@ import { randomBytes } from 'node:crypto'
 import { ObjectId } from 'mongodb'
 import { Resend } from 'resend'
 import { db, getSessionUser, serializeId } from '../lib/mongodb.js'
+import { logActivity } from '../lib/activity.js'
+import { ensureProjectFromProposal } from '../lib/projects-service.js'
 import type { AppVariables } from '../middleware/session.js'
 
 const proposals = new Hono<{ Variables: AppVariables }>()
@@ -28,7 +30,6 @@ proposals.get('/', async (c) => {
   return c.json(items.map((item) => serializeId(item)))
 })
 
-/** GET /proposals/public/:token — Proposal Room (sem auth) */
 proposals.get('/public/:token', async (c) => {
   const token = c.req.param('token')
   if (!token || token.length < 16) return c.json({ error: 'Token invalido.' }, 400)
@@ -37,7 +38,6 @@ proposals.get('/public/:token', async (c) => {
   const proposal = await database.collection('proposals').findOne({ publicToken: token })
   if (!proposal) return c.json({ error: 'Proposta nao encontrada.' }, 404)
 
-  // Nao expor dados internos desnecessarios
   return c.json({
     id: String(proposal._id),
     title: proposal.title,
@@ -118,6 +118,15 @@ proposals.post('/', async (c) => {
     })
   }
 
+  await logActivity({
+    type: 'proposal_created',
+    actorId: String(user._id),
+    actorEmail: user.email,
+    entityType: 'proposal',
+    entityId: String(inserted.insertedId),
+    meta: { clientEmail: proposal.clientEmail },
+  })
+
   const shouldEmail = body.sendEmail !== false
   const key = process.env.RESEND_API_KEY
   if (shouldEmail && key) {
@@ -135,6 +144,13 @@ proposals.post('/', async (c) => {
         { _id: inserted.insertedId },
         { $set: { status: 'sent', sentAt: new Date() } }
       )
+      await logActivity({
+        type: 'proposal_sent',
+        actorId: String(user._id),
+        actorEmail: user.email,
+        entityType: 'proposal',
+        entityId: String(inserted.insertedId),
+      })
       return c.json({
         id: String(inserted.insertedId),
         sent: true,
@@ -165,14 +181,16 @@ proposals.post('/', async (c) => {
     )
   }
 
-  return c.json({
-    id: String(inserted.insertedId),
-    publicToken,
-    status: 'draft',
-  }, 201)
+  return c.json(
+    {
+      id: String(inserted.insertedId),
+      publicToken,
+      status: 'draft',
+    },
+    201
+  )
 })
 
-/** PATCH /proposals/:id — status approve/reject/sent (admin ou dono para approve) */
 proposals.patch('/:id', async (c) => {
   const user = await getSessionUser(getCookie(c, 'teron_session'))
   if (!user) return c.json({ error: 'Nao autorizado.' }, 403)
@@ -188,9 +206,6 @@ proposals.patch('/:id', async (c) => {
   const isOwner = existing.clientEmail === user.email
   if (!isAdmin && !isOwner) return c.json({ error: 'Sem permissao.' }, 403)
 
-  if (body.status === 'approved' && !isAdmin && !isOwner) {
-    return c.json({ error: 'Sem permissao.' }, 403)
-  }
   if ((body.status === 'sent' || body.status === 'draft') && !isAdmin) {
     return c.json({ error: 'Apenas admin pode alterar este status.' }, 403)
   }
@@ -210,7 +225,37 @@ proposals.patch('/:id', async (c) => {
     { $set },
     { returnDocument: 'after' }
   )
-  return c.json(serializeId(result!))
+
+  let project: { projectId: string; created: boolean } | null = null
+  if (body.status === 'approved' && result) {
+    project = await ensureProjectFromProposal({
+      _id: result._id,
+      clientEmail: String(result.clientEmail),
+      title: String(result.title),
+      timeline: result.timeline ? String(result.timeline) : undefined,
+    })
+    await logActivity({
+      type: 'proposal_approved',
+      actorId: String(user._id),
+      actorEmail: user.email,
+      entityType: 'proposal',
+      entityId: String(result._id),
+      meta: { projectId: project.projectId },
+    })
+  } else if (body.status === 'rejected') {
+    await logActivity({
+      type: 'proposal_rejected',
+      actorId: String(user._id),
+      actorEmail: user.email,
+      entityType: 'proposal',
+      entityId: String(existing._id),
+    })
+  }
+
+  return c.json({
+    ...serializeId(result!),
+    project,
+  })
 })
 
 export default proposals
