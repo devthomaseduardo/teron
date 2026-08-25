@@ -40,13 +40,17 @@ services:
     environment:
       NODE_ENV: production
       PORT: "4000"
-      MONGODB_URI: mongodb://mongo:27017
-      MONGODB_DB: teron
-      FRONTEND_URL: http://localhost:3000
-      SITE_URL: http://localhost:3000
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017}
+      MONGODB_CONNECTION_STRING: ${MONGODB_CONNECTION_STRING:-}
+      MONGODB_DB: ${MONGODB_DB:-teron}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      SITE_URL: ${SITE_URL:-http://localhost:3000}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       RESEND_FROM: ${RESEND_FROM:-TERON <onboarding@resend.dev>}
       MERCADOPAGO_ACCESS_TOKEN: ${MERCADOPAGO_ACCESS_TOKEN:-}
+      MERCADOPAGO_PUBLIC_KEY: ${MERCADOPAGO_PUBLIC_KEY:-}
+      MERCADOPAGO_CLIENT_ID: ${MERCADOPAGO_CLIENT_ID:-}
+      MERCADOPAGO_CLIENT_SECRET: ${MERCADOPAGO_CLIENT_SECRET:-}
     depends_on:
       mongo:
         condition: service_healthy
@@ -68,16 +72,16 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:4000
-        NEXT_PUBLIC_SITE_URL: http://localhost:3000
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
     container_name: teron-web
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://localhost:4000
-      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
     depends_on:
       api:
         condition: service_healthy
