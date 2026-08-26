@@ -88,7 +88,7 @@ function Shell({
     <main className="workspace">
       <aside>
         <TeronLogo height={26} />
-        <div className="workspace-label">TERON / CLIENT</div>
+        <div className="workspace-label">TERON · CLIENTE</div>
         <nav className="side-nav">
           <a className="side-active" href="/">
             Visão geral
@@ -106,14 +106,14 @@ function Shell({
       </aside>
       <section className="workspace-main">
         <div className="workspace-top">
-          <span className="back">TERON / CLIENTE</span>
+          <span className="back">Área do cliente</span>
           <button className="logout" type="button" onClick={onLogout}>
             <LogOut size={16} /> Sair
           </button>
         </div>
         <div className="workspace-heading">
           <div>
-            <p className="eyebrow">Workspace conectado</p>
+            <p className="eyebrow">Workspace ativo</p>
             <h1>Seu próximo movimento</h1>
           </div>
         </div>
@@ -305,12 +305,18 @@ function Landing() {
           </a>
         </div>
       </header>
+
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow">TERON / DIGITAL PARTNER</p>
-          <h1>Clareza para construir o que vem depois.</h1>
+          <p className="eyebrow">Estúdio de produto digital</p>
+          <h1>
+            Clareza para construir
+            <br />
+            o que vem depois.
+          </h1>
           <p className="hero-sub">
-            Diagnósticos, propostas e acompanhamento de projeto em um só lugar.
+            Diagnóstico, proposta e acompanhamento em um só fluxo — com a postura de uma agência e a
+            precisão de produto.
           </p>
           <div className="hero-actions">
             <a className="btn" href="/diagnostico">
@@ -320,7 +326,7 @@ function Landing() {
               Portal do cliente <ArrowRight size={15} />
             </a>
             <a className="btn btn-secondary" href="/admin/login">
-              Painel administrativo <ArrowRight size={15} />
+              Painel da equipe <ArrowRight size={15} />
             </a>
           </div>
         </div>
@@ -328,7 +334,7 @@ function Landing() {
           <div className="orbital orbital-one" />
           <div className="orbital orbital-two" />
           <div className="hero-card">
-            <div className="mini-label">SIGNAL / LIVE</div>
+            <div className="mini-label">SINAL · AO VIVO</div>
             <div className="signal-line">
               <i />
               <i />
@@ -339,12 +345,112 @@ function Landing() {
               <i />
             </div>
             <div className="hero-card-footer">
-              <span>PIPELINE</span>
-              <b>READY</b>
+              <span>FUNIL</span>
+              <b>PRONTO</b>
             </div>
           </div>
         </div>
       </section>
+
+      <section className="flow" aria-label="Como funciona">
+        <div className="flow-item">
+          <span>01</span>
+          <strong>Diagnóstico</strong>
+        </div>
+        <div className="flow-item">
+          <span>02</span>
+          <strong>Proposta</strong>
+        </div>
+        <div className="flow-item">
+          <span>03</span>
+          <strong>Aprovação</strong>
+        </div>
+        <div className="flow-item">
+          <span>04</span>
+          <strong>Entrega</strong>
+        </div>
+      </section>
+
+      <section className="intro-grid">
+        <div>
+          <p className="eyebrow">Por que TERON</p>
+          <h2>Direção de agência. Execução de produto.</h2>
+        </div>
+        <div>
+          <p className="body-copy">
+            Unimos estratégia, design e engenharia para transformar uma necessidade real em sistema
+            claro, conectado e pronto para produção — sem ruído e sem promessa vazia.
+          </p>
+          <a className="inline-link" href="/diagnostico">
+            Começar pelo diagnóstico <ArrowRight size={14} />
+          </a>
+        </div>
+      </section>
+
+      <section className="services">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Frentes</p>
+            <h2 style={{ margin: '8px 0 0', fontSize: 36, fontWeight: 400, letterSpacing: '-0.04em' }}>
+              Três linhas de trabalho
+            </h2>
+          </div>
+          <span>01 — 03</span>
+        </div>
+        <div className="service-list">
+          <div className="service-row">
+            <span>01</span>
+            <h3>Marca e web</h3>
+            <p className="body-copy" style={{ margin: 0, maxWidth: 280 }}>
+              Sites, landing pages e experiências com foco em conversão.
+            </p>
+          </div>
+          <div className="service-row">
+            <span>02</span>
+            <h3>Produto e plataformas</h3>
+            <p className="body-copy" style={{ margin: 0, maxWidth: 280 }}>
+              Portais, dashboards e sistemas para uso recorrente.
+            </p>
+          </div>
+          <div className="service-row">
+            <span>03</span>
+            <h3>Operação e automação</h3>
+            <p className="body-copy" style={{ margin: 0, maxWidth: 280 }}>
+              APIs, integrações e fluxos que reduzem trabalho manual.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="proof">
+        <div>
+          <p className="eyebrow">Processo</p>
+          <h2>
+            Entender → Definir
+            <br />
+            <em>→ Construir → Evoluir</em>
+          </h2>
+        </div>
+        <div className="metrics">
+          <div>
+            <strong>1</strong>
+            <span>fluxo do lead à entrega</span>
+          </div>
+          <div>
+            <strong>24h</strong>
+            <span>retorno típico do diagnóstico</span>
+          </div>
+          <div>
+            <strong>100%</strong>
+            <span>contexto preservado no portal</span>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <span>TERON · São Paulo</span>
+        <span>Critério · processo · entrega</span>
+      </footer>
     </main>
   )
 }
@@ -401,7 +507,7 @@ export default function Page() {
             Portal do cliente
           </a>
           <a className="btn btn-secondary" href="/admin/login">
-            Admin
+            Equipe
           </a>
         </div>
       </main>
