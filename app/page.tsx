@@ -11,6 +11,7 @@ import {
   Send,
   ShieldCheck,
 } from 'lucide-react'
+import { TeronLogo } from '@/components/teron-logo'
 
 type User = { id: string; email: string; name: string; role: 'admin' | 'client' }
 type Diagnosis = {
@@ -57,14 +58,6 @@ const niches: Record<string, string[]> = {
   ],
 }
 
-function Logo() {
-  return (
-    <a href="/" className="logo">
-      <span className="logo-mark">+</span> TERON
-    </a>
-  )
-}
-
 function Button({
   children,
   type = 'button',
@@ -94,7 +87,7 @@ function Shell({
   return (
     <main className="workspace">
       <aside>
-        <Logo />
+        <TeronLogo height={26} />
         <div className="workspace-label">
           TERON / {user.role === 'admin' ? 'OPERATIONS' : 'CLIENT'}
         </div>
@@ -452,7 +445,7 @@ function Landing() {
   return (
     <main>
       <header className="topbar">
-        <Logo />
+        <TeronLogo height={30} />
         <div className="top-actions">
           <a className="text-link" href="/diagnostico">
             Diagnostico
@@ -549,11 +542,13 @@ export default function Page() {
     setUser(null)
   }
 
-  // Nunca trava a tela inteira: no maximo 2.5s de loading
   if (booting && !user) {
     return (
       <main className="auth-shell">
-        <p className="eyebrow">Carregando TERON…</p>
+        <TeronLogo height={32} href={null} />
+        <p className="eyebrow" style={{ marginTop: 24 }}>
+          Carregando TERON…
+        </p>
         <div className="hero-actions" style={{ marginTop: 24 }}>
           <a className="btn" href="/cliente/login">
             Portal do cliente
