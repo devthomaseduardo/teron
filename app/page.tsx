@@ -8,10 +8,10 @@ import {
   FileText,
   LogOut,
   RefreshCw,
-  Send,
   ShieldCheck,
 } from 'lucide-react'
 import { TeronLogo } from '@/components/teron-logo'
+import { AdminPanel } from '@/components/admin-panel'
 
 type User = { id: string; email: string; name: string; role: 'admin' | 'client' }
 type Diagnosis = {
@@ -37,21 +37,21 @@ type Proposal = {
 const niches: Record<string, string[]> = {
   SaaS: [
     'Qual problema seu produto resolve?',
-    'Quem e o cliente ideal?',
+    'Quem é o cliente ideal?',
     'Qual o principal diferencial?',
-    'Em que estagio esta o produto?',
+    'Em que estágio está o produto?',
     'Qual objetivo quer atingir agora?',
   ],
   Ecom: [
-    'O que voce vende?',
-    'Quem compra de voce?',
+    'O que você vende?',
+    'Quem compra de você?',
     'Como vende hoje?',
-    'Qual desafio de conversao?',
-    'Qual meta para os proximos meses?',
+    'Qual desafio de conversão?',
+    'Qual meta para os próximos meses?',
   ],
-  Servicos: [
-    'Qual servico voce oferece?',
-    'Quem e seu publico?',
+  Serviços: [
+    'Qual serviço você oferece?',
+    'Quem é seu público?',
     'Como chegam novos clientes?',
     'O que precisa melhorar?',
     'Qual resultado espera?',
@@ -88,28 +88,25 @@ function Shell({
     <main className="workspace">
       <aside>
         <TeronLogo height={26} />
-        <div className="workspace-label">
-          TERON / {user.role === 'admin' ? 'OPERATIONS' : 'CLIENT'}
-        </div>
+        <div className="workspace-label">TERON / CLIENT</div>
         <nav className="side-nav">
           <a className="side-active" href="/">
-            Visao geral
+            Visão geral
           </a>
-          <a href="/diagnostico">Diagnosticos</a>
-          <a href="/">Propostas</a>
+          <a href="/diagnostico">Diagnóstico</a>
         </nav>
         <div className="side-bottom">
           <div className="avatar">{user.name.slice(0, 2).toUpperCase()}</div>
           <span>
             {user.name}
             <br />
-            <small>{user.role === 'admin' ? 'Administrador' : 'Cliente'}</small>
+            <small>Cliente</small>
           </span>
         </div>
       </aside>
       <section className="workspace-main">
         <div className="workspace-top">
-          <span className="back">TERON / {user.role === 'admin' ? 'ADMIN' : 'CLIENTE'}</span>
+          <span className="back">TERON / CLIENTE</span>
           <button className="logout" type="button" onClick={onLogout}>
             <LogOut size={16} /> Sair
           </button>
@@ -117,7 +114,7 @@ function Shell({
         <div className="workspace-heading">
           <div>
             <p className="eyebrow">Workspace conectado</p>
-            <h1>{user.role === 'admin' ? 'Operacao TERON' : 'Seu proximo movimento'}</h1>
+            <h1>Seu próximo movimento</h1>
           </div>
         </div>
         {children}
@@ -171,11 +168,11 @@ function ClientPanel({ user, onLogout }: { user: User; onLogout: () => void }) {
 
   return (
     <Shell user={user} onLogout={onLogout}>
-      <div className="kpi-grid">
+      <div className="kpi-grid admin-kpi">
         <div className="kpi">
-          <span>Diagnosticos enviados</span>
+          <span>Diagnósticos enviados</span>
           <strong>{diagnoses.length}</strong>
-          <small>visivel para a equipe TERON</small>
+          <small>visível para a equipe</small>
         </div>
         <div className="kpi">
           <span>Propostas recebidas</span>
@@ -184,7 +181,7 @@ function ClientPanel({ user, onLogout }: { user: User; onLogout: () => void }) {
         </div>
         <div className="kpi">
           <span>Status atual</span>
-          <strong>{proposals.some((p) => p.status === 'sent') ? 'Proposta' : 'Analise'}</strong>
+          <strong>{proposals.length ? 'Proposta' : 'Análise'}</strong>
           <small>atualizado em tempo real</small>
         </div>
       </div>
@@ -192,22 +189,22 @@ function ClientPanel({ user, onLogout }: { user: User; onLogout: () => void }) {
         <section className="panel diagnosis-form">
           <div className="panel-head">
             <div>
-              <p className="eyebrow">Novo diagnostico</p>
-              <h2>Conte-nos sobre seu negocio.</h2>
+              <p className="eyebrow">Novo diagnóstico</p>
+              <h2>Conte-nos sobre seu negócio.</h2>
             </div>
             <ClipboardList size={22} />
           </div>
           <p className="body-copy" style={{ marginBottom: 16 }}>
             Prefere o fluxo guiado?{' '}
             <a href="/diagnostico" style={{ color: 'var(--primary)' }}>
-              Abrir pagina de diagnostico
+              Abrir página de diagnóstico
             </a>
           </p>
           {sent ? (
-            <div className="success-state">
+            <div className="success-state empty-state">
               <Check size={32} />
-              <h3>Diagnostico conectado ao painel.</h3>
-              <p>A equipe ja recebeu suas respostas.</p>
+              <h3>Diagnóstico enviado.</h3>
+              <p>A equipe TERON já pode analisar e responder com uma proposta.</p>
               <button
                 className="panel-button"
                 type="button"
@@ -248,7 +245,7 @@ function ClientPanel({ user, onLogout }: { user: User; onLogout: () => void }) {
                   />
                 </label>
               ))}
-              <Button type="submit">Enviar diagnostico</Button>
+              <Button type="submit">Enviar diagnóstico</Button>
             </form>
           )}
         </section>
@@ -263,179 +260,29 @@ function ClientPanel({ user, onLogout }: { user: User; onLogout: () => void }) {
             </button>
           </div>
           {loading ? (
-            <p className="body-copy">Sincronizando...</p>
+            <p className="body-copy">Sincronizando…</p>
           ) : proposals.length ? (
             proposals.map((p) => (
-              <article className="proposal-card" key={p._id}>
+              <article className="proposal-card admin-proposal" key={p._id}>
                 <FileText size={18} />
                 <div>
                   <b>{p.title}</b>
                   <p>{p.scope}</p>
-                  <strong>{p.investment}</strong>
-                  <span className="badge">{p.status}</span>
+                  <div className="proposal-foot">
+                    <strong>{p.investment}</strong>
+                    {p.timeline && <em>{p.timeline}</em>}
+                    <span className="badge">{p.status}</span>
+                  </div>
                 </div>
               </article>
             ))
           ) : (
             <div className="empty-state">
               <ShieldCheck size={22} />
-              <p>Sua proposta aparecera aqui apos a analise do diagnostico.</p>
+              <p>Sua proposta aparecerá aqui após a análise do diagnóstico.</p>
             </div>
           )}
         </aside>
-      </div>
-    </Shell>
-  )
-}
-
-function AdminPanel({ user, onLogout }: { user: User; onLogout: () => void }) {
-  const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([])
-  const [selected, setSelected] = useState<Diagnosis | null>(null)
-  const [title, setTitle] = useState('')
-  const [scope, setScope] = useState('')
-  const [investment, setInvestment] = useState('')
-  const [message, setMessage] = useState('')
-
-  async function load() {
-    try {
-      const response = await fetch('/api/diagnoses')
-      if (response.ok) setDiagnoses(await response.json())
-    } catch {
-      /* ignore */
-    }
-  }
-
-  useEffect(() => {
-    void load()
-  }, [])
-
-  async function send(e: React.FormEvent) {
-    e.preventDefault()
-    if (!selected) return
-    const response = await fetch('/api/proposals', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        diagnosisId: selected._id,
-        clientEmail: selected.clientEmail,
-        title,
-        scope,
-        investment,
-      }),
-    })
-    setMessage(
-      response.ok || response.status === 503
-        ? 'Proposta salva e vinculada ao cliente.'
-        : 'Nao foi possivel salvar a proposta.'
-    )
-    if (response.ok || response.status === 503) void load()
-  }
-
-  return (
-    <Shell user={user} onLogout={onLogout}>
-      <div className="kpi-grid">
-        <div className="kpi">
-          <span>Diagnosticos recebidos</span>
-          <strong>{diagnoses.length}</strong>
-          <small>sincronizados do cliente</small>
-        </div>
-        <div className="kpi">
-          <span>Aguardando analise</span>
-          <strong>{diagnoses.filter((d) => d.status === 'new').length}</strong>
-          <small>prioridade operacional</small>
-        </div>
-        <div className="kpi">
-          <span>Limite por nicho</span>
-          <strong>10</strong>
-          <small>perguntas configuraveis</small>
-        </div>
-      </div>
-      <div className="admin-grid">
-        <section className="panel">
-          <div className="panel-head">
-            <div>
-              <p className="eyebrow">Entrada conectada</p>
-              <h2>Diagnosticos</h2>
-            </div>
-            <button className="panel-button" type="button" onClick={() => void load()}>
-              <RefreshCw size={14} /> Atualizar
-            </button>
-          </div>
-          {diagnoses.length ? (
-            diagnoses.map((d) => (
-              <button
-                className="diagnosis-row"
-                type="button"
-                key={d._id}
-                onClick={() => {
-                  setSelected(d)
-                  setTitle(`Proposta personalizada · ${d.niche}`)
-                  setScope(
-                    `Estrategia e construcao para ${d.niche}, com base nas respostas enviadas.`
-                  )
-                  setInvestment('R$ 48.000')
-                  setMessage('')
-                }}
-              >
-                <div className="avatar">{d.clientEmail.slice(0, 2).toUpperCase()}</div>
-                <div>
-                  <b>{d.clientEmail}</b>
-                  <span>
-                    {d.niche} · {d.answers.length} respostas
-                  </span>
-                </div>
-                <span className="badge">{d.status}</span>
-              </button>
-            ))
-          ) : (
-            <div className="empty-state">
-              <ShieldCheck size={22} />
-              <p>Nenhum diagnostico recebido.</p>
-            </div>
-          )}
-        </section>
-        <section className="panel">
-          <div className="panel-head">
-            <div>
-              <p className="eyebrow">Proposal builder</p>
-              <h2>{selected ? 'Criar proposta' : 'Selecione um diagnostico'}</h2>
-            </div>
-            <Send size={20} />
-          </div>
-          {selected ? (
-            <form onSubmit={send}>
-              <div className="selected-lead">
-                <b>{selected.clientEmail}</b>
-                <span>{selected.niche} · analise das respostas</span>
-                {selected.answers.map((a) => (
-                  <small key={a.question}>
-                    <strong>{a.question}</strong>
-                    {a.answer}
-                  </small>
-                ))}
-              </div>
-              <label>
-                Titulo
-                <input required value={title} onChange={(e) => setTitle(e.target.value)} />
-              </label>
-              <label>
-                Escopo
-                <textarea required rows={4} value={scope} onChange={(e) => setScope(e.target.value)} />
-              </label>
-              <label>
-                Investimento
-                <input required value={investment} onChange={(e) => setInvestment(e.target.value)} />
-              </label>
-              {message && <p className="success-copy">{message}</p>}
-              <Button type="submit">Salvar e enviar ao cliente</Button>
-            </form>
-          ) : (
-            <div className="empty-state">
-              <FileText size={22} />
-              <p>Escolha um diagnostico para gerar uma proposta.</p>
-            </div>
-          )}
-        </section>
       </div>
     </Shell>
   )
@@ -448,7 +295,7 @@ function Landing() {
         <TeronLogo height={30} />
         <div className="top-actions">
           <a className="text-link" href="/diagnostico">
-            Diagnostico
+            Diagnóstico
           </a>
           <a className="text-link" href="/cliente/login">
             Portal do cliente
@@ -463,11 +310,11 @@ function Landing() {
           <p className="eyebrow">TERON / DIGITAL PARTNER</p>
           <h1>Clareza para construir o que vem depois.</h1>
           <p className="hero-sub">
-            Diagnosticos, propostas e acompanhamento de projeto em um so lugar.
+            Diagnósticos, propostas e acompanhamento de projeto em um só lugar.
           </p>
           <div className="hero-actions">
             <a className="btn" href="/diagnostico">
-              Fazer diagnostico <ArrowRight size={15} />
+              Fazer diagnóstico <ArrowRight size={15} />
             </a>
             <a className="btn btn-secondary" href="/cliente/login">
               Portal do cliente <ArrowRight size={15} />
